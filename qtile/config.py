@@ -143,7 +143,7 @@ layouts = [
         margin=1,
         margin_on_single=0,
         ),
-    layout.Max(),
+    # layout.Max(),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
@@ -152,7 +152,23 @@ layouts = [
     # layout.MonadWide(),
     # layout.RatioTile(),
     # layout.Tile(),
-    # layout.TreeTab(),
+    layout.TreeTab(
+        active_bg='#6272A4',
+        active_fg='#F8F8F2',
+        bg_color='#282A36',
+        font='Cascadia Code',
+        fontsize=10,
+        inactive_bg='#44475A',
+        inactive_fg='#F8F8F2',
+        padding_right=0,
+        padding_left=0,
+        padding_x=0,
+        padding_y=5,
+        section_fg='#6272A4',
+        section_top=10,
+        section_bottom=20,
+        vspace=3,
+    ),
     # layout.VerticalTile(),
     # layout.Zoomy(),
 ]
@@ -167,15 +183,9 @@ extension_defaults = widget_defaults.copy()
 
 
 # Widgets
-chord = widget.Chord(
-                    # chords_colors={
-                    #     "launch": ("#ff0000", "#ffffff"),
-                    # },
-                    # name_transform=lambda name: name.upper(),
-                )
+chord = widget.Chord()
 notify = widget.Notify(action=False)
 sep = widget.Sep()
-# wlan = widget.Wlan()
 battery = widget.Battery()
 cpu = widget.CPU()
 mem = widget.Memory(measure_mem='G', format='Mem: {MemUsed:.2f}G/{MemTotal:.2f}G')
@@ -200,6 +210,12 @@ def autostart_once():
     subprocess.Popen(['blueman-applet'])
     # subprocess.Popen(['cbatticon'])
 
+bar_defaults = {
+    'size': 24,
+    'background': '#282A36',
+    'opacity': 0.9,
+    'margin': [0, 0, 0, 0],
+}
 
 screens = [
     Screen(
@@ -207,34 +223,31 @@ screens = [
             [   
                 widget.CurrentLayoutIcon(),
                 widget.CurrentScreen(active_text='|', inactive_text='|'),
-                widget.GroupBox(disable_drag=True, hide_unused=True),
+                widget.GroupBox(
+                    disable_drag=True, 
+                    hide_unused=True,
+                    highlight_method='block',
+                    this_current_screen_border='#6272A4',
+                    this_screen_border='#44475A',
+                    other_current_screen_border='#6272A4',
+                    other_screen_border='#44475A',
+                    ),
                 sep,
                 widget.WindowName(),
-                # notify,
-                # sep,
-                # widget.OpenWeather(
-                #     location='Anapolis',
-                # ),
-                # sep,
-                # wlan,
-                # sep,
-                battery,
                 chord,
-                # widget.DF(),
-                sep,
-                systray,
                 sep,
                 cpu,
                 sep,
                 mem,
-                # check_updates,
+                sep,
+                battery,
+                sep,
+                systray,
                 sep,
                 clock,
                 sep,
             ],
-            24,
-            # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
-            # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
+            **bar_defaults
         ),
     ),
     Screen(
@@ -242,23 +255,22 @@ screens = [
             [   
                 widget.CurrentLayoutIcon(),
                 widget.CurrentScreen(active_text='|', inactive_text='|'),
-                widget.GroupBox(disable_drag=True, hide_unused=True),
+                widget.GroupBox(
+                    disable_drag=True, 
+                    hide_unused=True,
+                    highlight_method='block',
+                    this_current_screen_border='#6272A4',
+                    this_screen_border='#44475A',
+                    other_current_screen_border='#6272A4',
+                    other_screen_border='#44475A',
+                    ),
                 sep,
                 widget.WindowName(),
-                # chord,
-                # sep,
-                # wlan,
-                # sep,
-                # battery,
-                sep,
-                cpu,
-                sep,
-                mem,
                 sep,
                 clock,
                 sep,
             ],
-            24,
+            **bar_defaults,
         ),
     ),
 ]
