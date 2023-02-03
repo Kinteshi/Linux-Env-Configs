@@ -24,12 +24,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from libqtile import bar, layout, widget, hook
+from libqtile import bar, layout, widget, hook, qtile
 from libqtile.config import Click, Drag, Group, Key, Match, Screen, KeyChord
 from libqtile.lazy import lazy
 import subprocess
 import os
 # from libqtile.utils import guess_terminal
+
+# Wayland config
+if qtile.core.name == 'wayland':
+    from libqtile.backend.wayland.core import Core
+    from libqtile.backend.wayland import InputConfig
+
+    # Set up input devices
+    input_config = InputConfig()
+    input_config.set_keyboard_layout('us', 'altgr-intl')
+
 
 mod = "mod4"
 terminal = 'terminator'
@@ -56,13 +66,16 @@ keys = [
     Key([mod, "control"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
     Key([mod, "control"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+    # Section keybindings
+    Key([mod, 'mod1'], 'Left', lazy.layout.section_down(), desc='Move focus to the next section'),
+    Key([mod, 'mod1'], 'Right', lazy.layout.section_up(), desc='Move focus to the previous section'),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
     # multiple stack panes
     Key(
-        [mod, "shift"],
-        "Return",
+        [mod],
+        "semicolon",
         lazy.layout.toggle_split(),
         desc="Toggle between split and unsplit sides of stack",
     ),
@@ -72,8 +85,8 @@ keys = [
     Key([mod], "apostrophe", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
-    Key([mod, "shift"], "e", lazy.shutdown(), desc="Shutdown Qtile"),
-    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+    # Key([mod, "shift"], "e", lazy.shutdown(), desc="Shutdown Qtile"),
+    # Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
     # Power menu
     KeyChord([mod], 'BackSpace', [
         # Lock screen
@@ -99,6 +112,9 @@ keys = [
     Key([], 'XF86AudioRaiseVolume', lazy.spawn('pactl set-sink-volume @DEFAULT_SINK@ +5%')),
     Key([], 'XF86AudioLowerVolume', lazy.spawn('pactl set-sink-volume @DEFAULT_SINK@ -5%')),
     Key([], 'XF86AudioMute', lazy.spawn('pactl set-sink-mute @DEFAULT_SINK@ toggle')),
+    # Brightness
+    Key([], 'XF86MonBrightnessUp', lazy.spawn('brightnessctl set +10%')),
+    Key([], 'XF86MonBrightnessDown', lazy.spawn('brightnessctl set 10%-')),
     # Switch between monitors
     Key([mod], 'period', lazy.next_screen()),
     # Bring back from floating
@@ -141,9 +157,14 @@ layouts = [
         border_normal_stack='#44475A',
         border_width=2,
         margin=1,
-        margin_on_single=0,
+        margin_on_single=1,
         ),
-    # layout.Max(),
+    layout.Max(
+        border_focus='#6272A4',
+        border_normal='#44475A',
+        border_width=2,
+        margin=1
+    ),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
@@ -152,25 +173,29 @@ layouts = [
     # layout.MonadWide(),
     # layout.RatioTile(),
     # layout.Tile(),
-    layout.TreeTab(
-        active_bg='#6272A4',
-        active_fg='#F8F8F2',
-        bg_color='#282A36',
-        font='Cascadia Code',
-        fontsize=10,
-        inactive_bg='#44475A',
-        inactive_fg='#F8F8F2',
-        padding_right=0,
-        padding_left=0,
-        padding_x=0,
-        padding_y=5,
-        section_fg='#6272A4',
-        section_top=10,
-        section_bottom=20,
-        vspace=3,
-    ),
+    # layout.TreeTab(
+    #     active_bg='#6272A4',
+    #     active_fg='#F8F8F2',
+    #     bg_color='#282A36',
+    #     font='Cascadia Code',
+    #     fontsize=10,
+    #     inactive_bg='#44475A',
+    #     inactive_fg='#F8F8F2',
+    #     padding_right=0,
+    #     padding_left=0,
+    #     padding_x=0,
+    #     padding_y=5,
+    #     section_fg='#6272A4',
+    #     section_top=10,
+    #     section_bottom=20,
+    #     vspace=3,
+    #     previous_on_rm=True,
+    #     sections=['A', 'B', 'C']
+    # ),
     # layout.VerticalTile(),
-    # layout.Zoomy(),
+    # layout.Zoomy(
+
+    # ),
 ]
 
 widget_defaults = dict(
@@ -184,7 +209,7 @@ extension_defaults = widget_defaults.copy()
 
 # Widgets
 chord = widget.Chord()
-notify = widget.Notify(action=False)
+# notify = widget.Notify(action=False)
 sep = widget.Sep()
 battery = widget.Battery()
 cpu = widget.CPU()
@@ -236,6 +261,13 @@ screens = [
                 widget.WindowName(),
                 chord,
                 sep,
+                # widget.Backlight(
+                #     backlight_name='intel_backlight',
+                #     brightness_file='brightness',
+                #     max_brightness_file='max_brightness',
+                #     # fmt='Brt: {percent:2.0%}',
+                #     ),
+                widget.Notify(),
                 cpu,
                 sep,
                 mem,
@@ -243,6 +275,7 @@ screens = [
                 battery,
                 sep,
                 systray,
+                widget.PulseVolume(),
                 sep,
                 clock,
                 sep,
